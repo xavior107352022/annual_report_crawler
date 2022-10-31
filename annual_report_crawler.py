@@ -66,14 +66,14 @@ for year in year_list:
             response = requests.get(link, allow_redirects=True)
             file_name = name
 
-            print(file_name + '-' * 10 + 'ok')
             exist_files_list = os.listdir(os.getcwd() + save_path)
             if file_name not in exist_files_list:
                 with open(os.getcwd() + save_path + file_name, 'wb') as f:
                     f.write(response.content)
                     f.close()
+                print(file_name + '-' * 10 + 'ok')
             else:
-                print('existing file : {}'.format(ticker))
+                print('existing file : {}'.format(file_name))
 
         except Exception as e:
             print('processing fail : {}'.format(ticker))
