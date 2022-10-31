@@ -4,6 +4,7 @@ import lxml
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
 import os
 import pandas as pd
 import pyodbc
@@ -37,6 +38,7 @@ chrome_options.headless = True
 
 ticker_list = df['公司代號']
 year_list = [str(x) for x in range(109, 112)]
+fail_list = []
 for year in year_list:
     print('-' * 100)
     print('-' * 100)
@@ -47,21 +49,21 @@ for year in year_list:
         try:
             print('processing : {}'.format(ticker))
             driver = webdriver.Chrome(ChromeDriverManager(path='./chromedriver/').install(),
-                                      chrome_options=chrome_options)
+                                    chrome_options=chrome_options)
             driver.get('https://www.google.com/?hl=zh_tw')
             url = 'https://doc.twse.com.tw/server-java/t57sb01?id=&key=&step=1&co_id={}&year={}&seamon=&mtype=F&dtype=F04'.format(
-                ticker, year)
+            ticker, year)
             driver.get(url)
             print(url)
             # 點選PDF URL
-            time.sleep(2)
-            driver.find_element_by_tag_name('a').click()
+            time.sleep(1)
+            driver.find_element(By.TAG_NAME,'a').click()
             handles = driver.window_handles
             driver.switch_to.window(handles[1])
             # 抓取pdf資訊
-            time.sleep(2)
-            link = driver.find_elements_by_tag_name('a')[0].get_attribute('href')
-            name = driver.find_elements_by_tag_name('a')[0].text
+            time.sleep(1)
+            link = driver.find_element(By.TAG_NAME,'a').get_attribute('href')
+            name = driver.find_element(By.TAG_NAME,'a').text
             print(link)
             # 存成PDF
             response = requests.get(link, allow_redirects=True)
@@ -74,3 +76,4 @@ for year in year_list:
 
         except:
             print('processing fail: {}'.format(ticker))
+            fail_list.append((year,ticker))
