@@ -1,13 +1,10 @@
 import requests
-from bs4 import BeautifulSoup
-import lxml
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 import os
 import pandas as pd
-import pyodbc
 import time
 from utils import get_info
 
