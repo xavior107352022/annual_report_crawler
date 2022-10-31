@@ -42,7 +42,7 @@ for year in year_list:
     print('-' * 100)
     print('processing : {}'.format(year))
     for ticker in ticker_list:
-        time.sleep(10)
+        # time.sleep(10)
         try:
             print('processing : {}'.format(ticker))
             driver = webdriver.Chrome(ChromeDriverManager(path='./chromedriver/').install(),
@@ -67,10 +67,15 @@ for year in year_list:
             file_name = name
 
             print(file_name + '-' * 10 + 'ok')
-            with open(os.getcwd() + save_path + file_name, 'wb') as f:
-                f.write(response.content)
-                f.close()
+            exist_files_list = os.listdir(os.getcwd() + save_path)
+            if file_name not in exist_files_list:
+                with open(os.getcwd() + save_path + file_name, 'wb') as f:
+                    f.write(response.content)
+                    f.close()
+            else:
+                print('existing file : {}'.format(ticker))
 
-        except:
-            print('processing fail: {}'.format(ticker))
+        except Exception as e:
+            print('processing fail : {}'.format(ticker))
+            print(e)
             fail_list.append((year,ticker))
