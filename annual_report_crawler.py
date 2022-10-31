@@ -8,13 +8,17 @@ import os
 import pandas as pd
 import pyodbc
 import time
+from utils import get_info
+
+start_year = 109
+end_year = 112
 
 save_path = '\\Share_Holder_Ann\\'
 if not os.path.exists(os.getcwd() + save_path):
     os.makedirs(os.getcwd() + save_path)
 
-server = 'XAVIOR\SQLEXPRESS'
-database = 'cmoney'
+# server = 'XAVIOR\SQLEXPRESS'
+# database = 'cmoney'
 # cnxn = pyodbc.connect('DRIVER={SQL Server};SERVER=' + server + ';DATABASE=' + database)
 # cursor = cnxn.cursor()
 #
@@ -23,18 +27,22 @@ database = 'cmoney'
 # sql_query = "SELECT * FROM firm_info_delisted;"
 # df_delisted = pd.read_sql_query(sql_query, cnxn)
 # df = pd.concat([df_listed, df_delisted])
+df_info_tse, df_info_otc = get_info()
+df = pd.concat([df_info_tse, df_info_otc])
+
 
 ChromeDriverManager(path='./chromedriver/').install()
 chrome_options = Options()
 chrome_options.headless = True
 
+ticker_list = df['公司代號']
 year_list = [str(x) for x in range(109, 112)]
 for year in year_list:
     print('-' * 100)
     print('-' * 100)
     print('-' * 100)
     print('processing : {}'.format(year))
-    for ticker in df['股票代號']:
+    for ticker in ticker_list:
         time.sleep(10)
         try:
             print('processing : {}'.format(ticker))
@@ -46,12 +54,12 @@ for year in year_list:
             driver.get(url)
             print(url)
             # 點選PDF URL
-            time.sleep(1)
+            time.sleep(2)
             driver.find_element_by_tag_name('a').click()
             handles = driver.window_handles
             driver.switch_to.window(handles[1])
             # 抓取pdf資訊
-            time.sleep(1)
+            time.sleep(2)
             link = driver.find_elements_by_tag_name('a')[0].get_attribute('href')
             name = driver.find_elements_by_tag_name('a')[0].text
             print(link)
