@@ -42,7 +42,7 @@ for year in year_list:
     print('-' * 100)
     print('processing : {}'.format(year))
     for ticker in ticker_list:
-        # time.sleep(10)
+        time.sleep(10)
         try:
             print('processing : {}'.format(ticker))
             driver = webdriver.Chrome(ChromeDriverManager(path='./chromedriver/').install(),
