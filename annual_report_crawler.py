@@ -34,7 +34,7 @@ chrome_options = Options()
 chrome_options.headless = True
 
 ticker_list = df['公司代號']
-year_list = [str(x) for x in range(109, 112)]
+year_list = [str(x) for x in range(112, 113)]
 fail_list = []
 for year in year_list:
     print('-' * 100)
