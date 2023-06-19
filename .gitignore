@@ -1,4 +1,8 @@
 /__pycache__/
 /chromedriver/
 /Share_Holder_Ann/
+/Share_Holder_Ann_List/
 /Share_Holder_Ann.rar
+*.xlsx
+/venv/
+/.vscode/
