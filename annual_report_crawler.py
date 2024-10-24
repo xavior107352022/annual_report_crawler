@@ -1,3 +1,4 @@
+# %%
 import os
 import shutil
 import time
@@ -9,17 +10,21 @@ import requests
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 
 from utils import get_info
 
-start_year = 112
+start_year = 113
 end_year = 114
 use_list = False
 year_list = [str(x) for x in range(start_year, end_year)]
 
-download_path = "C:/Users/wa-00100690/Downloads/"
-save_path = "./Share_Holder_Ann/"
+download_path = "C:/Users/wa-00100809/Downloads/"
+
+# save_path = "./Share_Holder_Ann/"
+save_path = "./2023/"
+
 if not os.path.exists(os.getcwd() + save_path):
     os.makedirs(os.getcwd() + save_path)
 
@@ -30,18 +35,33 @@ else:
     df_info_tse, df_info_otc = get_info()
     df = pd.concat([df_info_tse, df_info_otc])
     ticker_list = df["公司代號"]
+ticker_list.reset_index(drop=True, inplace=True)
 options = Options()
 options.add_argument("--headless=new")
+service = Service()
 
+# %%
+result = [
+    f
+    for f in os.listdir(os.getcwd() + save_path)
+    if os.path.isfile(os.path.join(os.getcwd() + save_path, f))
+]
+ok_ticker_list = [t.split("_")[1] for t in result]
+
+not_yet_list = sorted(list(set(ticker_list.tolist()) - set(ok_ticker_list)))
+not_yet_list
+
+# %%
 fail_list = []
 for year in year_list:
-    for ticker in ticker_list:
+    # for ticker in ticker_list:
+    for ticker in not_yet_list:
         try:
             print("-" * 100)
             print("-" * 100)
             print("processing : {}".format(year))
             print("processing : {}".format(ticker))
-            driver = webdriver.Chrome(options=options)
+            driver = webdriver.Chrome(service=service, options=options)
             driver.get("https://www.google.com/?hl=zh_tw")
             url = "https://doc.twse.com.tw/server-java/t57sb01?id=&key=&step=1&co_id={}&year={}&seamon=&mtype=F&dtype=F04".format(
                 ticker, year
@@ -60,7 +80,7 @@ for year in year_list:
                 print(url)
                 time.sleep(5)
                 file_element = driver.find_element(By.TAG_NAME, "a")
-                
+
             file_name = file_element.text
             download_file_list = os.listdir(download_path)
             download_file_list = [x for x in download_file_list if "t57sb01" in x]
@@ -135,3 +155,4 @@ df_final_fail = pd.DataFrame()
 df_final_fail["year"] = [x[0] for x in fail_list]
 df_final_fail["ticker"] = [x[1] for x in fail_list]
 df_final_fail["time"] = datetime.now().strftime("%Y%m%d")
+df_final_fail.to_csv("./fail_list.csv", index=False)
