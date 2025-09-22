@@ -1,0 +1,21 @@
+[project]
+name = "annual-report-crawler"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "cathaysite",
+    "lxml>=6.0.2",
+    "requests>=2.32.5",
+    "selenium>=4.35.0",
+]
+
+[tool.uv.sources]
+cathaysite = { path = '\\human\human/DataScienceTeam/Whl/cathaysite-0.8.3-py3-none-any.whl' }
+
+[dependency-groups]
+dev = [
+"ipykernel>=6.29.5",
+"ruff>=0.9.9",
+]

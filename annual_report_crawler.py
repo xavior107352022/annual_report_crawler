@@ -1,4 +1,4 @@
-# %%
+# %% Import Packages
 import os
 import shutil
 import time
@@ -7,55 +7,53 @@ from datetime import datetime
 
 import pandas as pd
 import requests
+from cathaysite import cathay_db as db
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 
-from utils import get_info
-
-start_year = 113
-end_year = 114
-use_list = False
+# 設定起始年和結束年
+start_year = 114
+end_year = 115
 year_list = [str(x) for x in range(start_year, end_year)]
 
+use_list = False
+
+# 暫存路徑
 download_path = "C:/Users/wa-00100809/Downloads/"
 
-# save_path = "./Share_Holder_Ann/"
-save_path = "./2023/"
+db_config = db.db_config(db="tdds")
+sql_query = "select * from tej_twn_anprcstd where [stype] in ('STOCK','FSTOCK') and [mkt] in ('TSE','OTC')"
+df = db.pd_read_mssql_data(sql_query, database="FinanceOther", **db_config)
 
-if not os.path.exists(os.getcwd() + save_path):
-    os.makedirs(os.getcwd() + save_path)
-
-if use_list:
-    df_list = pd.read_excel("股票代號清單.xlsx")
-    ticker_list = df_list["股票代號"]
-else:
-    df_info_tse, df_info_otc = get_info()
-    df = pd.concat([df_info_tse, df_info_otc])
-    ticker_list = df["公司代號"]
+ticker_list = df["coid"].str.strip()
 ticker_list.reset_index(drop=True, inplace=True)
 options = Options()
 options.add_argument("--headless=new")
 service = Service()
 
-# %%
-result = [
-    f
-    for f in os.listdir(os.getcwd() + save_path)
-    if os.path.isfile(os.path.join(os.getcwd() + save_path, f))
-]
-ok_ticker_list = [t.split("_")[1] for t in result]
-
-not_yet_list = sorted(list(set(ticker_list.tolist()) - set(ok_ticker_list)))
-not_yet_list
-
-# %%
+# %% Main loop
 fail_list = []
 for year in year_list:
-    # for ticker in ticker_list:
-    for ticker in not_yet_list:
+    # 最終存放路徑
+    save_path = f"./output/{year}/"
+    if not os.path.exists(os.getcwd() + save_path):
+        os.makedirs(os.getcwd() + save_path)
+
+    result = [
+        f
+        for f in os.listdir(os.getcwd() + save_path)
+        if os.path.isfile(os.path.join(os.getcwd() + save_path, f))
+    ]
+    ok_ticker_list = [t.split("_")[1] for t in result]
+
+    not_yet_list = sorted(list(set(ticker_list.tolist()) - set(ok_ticker_list)))
+    print(len(not_yet_list))
+    print(not_yet_list)
+
+    for ticker in not_yet_list:  # 執行目前不在資料夾內的
         try:
             print("-" * 100)
             print("-" * 100)
@@ -74,8 +72,8 @@ for year in year_list:
                 file_element = driver.find_element(By.TAG_NAME, "a")
             except NoSuchElementException:
                 over_download_tag = driver.find_element(By.TAG_NAME, "center").text
-                print(over_download_tag, "暫停5分鐘再抓取")
-                time.sleep(300)
+                print(over_download_tag, "暫停3分鐘再抓取")
+                time.sleep(180)
                 driver.get(url)
                 print(url)
                 time.sleep(5)
@@ -97,7 +95,7 @@ for year in year_list:
                 name = driver.find_element(By.TAG_NAME, "a").text
                 print(link)
                 # 存成PDF
-                response = requests.get(link, allow_redirects=True)
+                response = requests.get(link, allow_redirects=True, verify=False)
                 file_name = name
 
                 exist_files_list = os.listdir(os.getcwd() + save_path)
@@ -151,8 +149,13 @@ for year in year_list:
             print(e)
             fail_list.append((year, ticker))
 
+# output fail list
 df_final_fail = pd.DataFrame()
 df_final_fail["year"] = [x[0] for x in fail_list]
 df_final_fail["ticker"] = [x[1] for x in fail_list]
-df_final_fail["time"] = datetime.now().strftime("%Y%m%d")
-df_final_fail.to_csv("./fail_list.csv", index=False)
+df_final_fail["datetime"] = datetime.now().strftime("%Y%m%d%H%M")
+df_final_fail.to_csv(
+    f"./fail/fail_list_{datetime.now().strftime('%Y%m%d%H%M')}.csv", index=False
+)
+
+# %%
